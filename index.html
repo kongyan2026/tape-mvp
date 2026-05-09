@@ -41,6 +41,7 @@
   .question-bubble {
     background: #2a2010; border: 1px solid #4a3a1a; border-radius: 16px 16px 16px 4px;
     padding: 18px; margin-bottom: 22px; font-size: 17px; line-height: 1.7; min-height: 68px;
+    max-height: 220px; overflow-y: auto;
   }
   #record-btn {
     width: 72px; height: 72px; border-radius: 50%; background: #c8a84a; border: none;
@@ -680,20 +681,15 @@ async function speakText(text, label) {
     const qEl = document.getElementById('question-bubble');
 
     if (bridgeFront) {
-      // 前半句：浏览器原生 TTS（机械音）
+      // 前半句：默认女声 ElevenLabs
       qEl.innerHTML = `<span>${bridgeFront}</span>`;
-      await new Promise(resolve => {
-        const utter = new SpeechSynthesisUtterance(bridgeFront);
-        utter.lang = 'zh-CN'; utter.rate = 0.85; utter.pitch = 1.0;
-        utter.onend = resolve; utter.onerror = resolve;
-        speechSynthesis.speak(utter);
-      });
+      await speakWithElevenLabs(bridgeFront, 'TAPE', DEFAULT_VOICE_ID);
       await new Promise(r => setTimeout(r, 300));
     }
 
-    // 后半句：克隆音色 + 发光
+    // 后半句：克隆音色（或默认女声）+ 发光
     qEl.innerHTML = `<span class="question-glow">${bridgeFront ? bridgeFront + ' ' : ''}${bridgeBack}</span>`;
-    await speakWithElevenLabs(bridgeBack, 'TAPE', voiceId);
+    await speakWithElevenLabs(bridgeBack, 'TAPE', voiceId || DEFAULT_VOICE_ID);
     await new Promise(r => setTimeout(r, 400));
   }
   const cleanText = normalizeTTSText(text);
